@@ -1,0 +1,24 @@
+*
+
+!.gitignore
+!README.md
+
+# Keep only Lumina sources/docs
+!lumina-api/**
+!lumina-app-react/**
+!docs/**
+!lumina_project_context.md
+!lumina_nuevos_apartados.md
+
+# Sensitive / local-only
+lumina-api/.env
+lumina-api/node_modules/
+lumina-api/uploads/
+lumina-api/build/
+lumina-api/public/
+
+lumina-app-react/node_modules/
+lumina-app-react/build/
+
+uploads/
+_backups/
