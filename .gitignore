@@ -4,7 +4,9 @@
 !README.md
 
 # Keep only Lumina sources/docs
+!lumina-api/
 !lumina-api/**
+!lumina-app-react/
 !lumina-app-react/**
 !docs/**
 !lumina_project_context.md
