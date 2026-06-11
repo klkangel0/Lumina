@@ -332,7 +332,7 @@ El sidebar se construye dinámicamente según el rol:
 Se ejecuta diariamente a las 08:00 (`node-cron`):
 - Busca subvenciones cuya `deadlineDate` caiga exactamente en 1 mes
 - Si no están justificadas, envía un email de alerta a la delegación correspondiente
-- Actualmente usa Mailtrap como placeholder SMTP (simulado con `console.log`)
+- SMTP configurable en `.env` (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`); sin configurar, los envíos quedan registrados en el log del servidor
 
 ---
 
@@ -378,7 +378,7 @@ npx prisma db push
 
 ---
 
-## 13. Notas Importantes para Otra IA
+## 13. Notas Técnicas de Referencia
 
 1. **API en frontend:** en producción las llamadas van a **`/api/...`** (mismo dominio). En local, CRA usa **`proxy`** en `package.json` hacia `http://localhost:4001`. Opcional: `REACT_APP_API_URL` en `MisPacientes.jsx`.
 2. **El token JWT** se guarda en sessionStorage (se pierde al cerrar pestaña)
@@ -396,7 +396,7 @@ npx prisma db push
 
 ---
 
-## 14. Despliegue en Plesk (fase desarrollo)
+## 14. Despliegue en Plesk (gassotea.org)
 
 Sustituir todo en `httpdocs/lumina-api`: `npm run deploy:bundle` → subir sin `node_modules` → en servidor `npm install`, `prisma generate`, `prisma db push`, `node seed-demo-data.js` → reiniciar Node. Detalle: `lumina-api/docs/DEPLOY-PRODUCTION.md`.
 

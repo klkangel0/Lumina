@@ -177,7 +177,7 @@ export default function CreateDelegacionModal({ isOpen, onClose, fetchDelegacion
                                     value={formData.email}
                                     onChange={e => setFormData({ ...formData, email: e.target.value })}
                                     className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all outline-none"
-                                    placeholder="contacto@assotea.org"
+                                    placeholder="correo@assotea.cat"
                                 />
                             </div>
                         </div>

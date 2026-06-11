@@ -544,7 +544,7 @@ const SocioDetailModal = ({ isOpen, onClose, socio }) => {
                                 <div className="flex items-start justify-between gap-4 mb-4">
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-800">Generar recibo SEPA</h3>
-                                        <p className="text-sm text-slate-500 mt-1">Se creará un recibo en estado <span className="font-semibold">Borrador</span> (fase 2).</p>
+                                        <p className="text-sm text-slate-500 mt-1">Se creará un recibo en estado <span className="font-semibold">Borrador</span>. Podrás revisarlo antes de marcarlo como generado.</p>
                                     </div>
                                     <button
                                         type="button"
@@ -595,7 +595,7 @@ const SocioDetailModal = ({ isOpen, onClose, socio }) => {
                                                         ))}
                                                     </select>
                                                     <p className="text-xs text-slate-500 mt-2">
-                                                        Consejo: usa una plantilla para reducir errores. Puedes cambiar a “Personalizado” si lo necesitas.
+                                                        Usa una plantilla para mayor precisión. Puedes cambiar a “Personalizado” si lo necesitas.
                                                     </p>
                                                 </div>
                                             </div>

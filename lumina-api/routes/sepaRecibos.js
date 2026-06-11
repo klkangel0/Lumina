@@ -455,7 +455,7 @@ router.post('/', async (req, res) => {
         });
         if (!socio) return res.status(404).json({ message: 'Socio no encontrado.' });
 
-        // En fase 2 solo generamos recibos para socios ACTIVE con mandato completo
+        // Solo se generan recibos para socios ACTIVE con mandato completo
         if (socio.status !== 'ACTIVE') {
             return res.status(400).json({ message: 'Solo se pueden generar recibos SEPA para socios activos.' });
         }

@@ -186,22 +186,22 @@ export default function Avisos() {
     const handleSend = async (e) => {
         e.preventDefault();
         if (!title.trim()) {
-            return Swal.fire({ icon: 'warning', title: 'Falta el asunto', text: 'Indique un asunto claro para el aviso.' });
+            return Swal.fire({ icon: 'warning', title: 'Falta el asunto', text: 'Escribe un asunto para el aviso.' });
         }
         if (!body.trim()) {
-            return Swal.fire({ icon: 'warning', title: 'Falta el mensaje', text: 'Escriba el contenido del aviso.' });
+            return Swal.fire({ icon: 'warning', title: 'Falta el mensaje', text: 'Escribe el contenido del aviso.' });
         }
 
         const delivery = { type: deliveryType };
         if (deliveryType === 'single_user') {
             if (!selectedUser?.id) {
-                return Swal.fire({ icon: 'warning', title: 'Seleccione destinatario', text: 'Busque y elija una persona de la lista.' });
+                return Swal.fire({ icon: 'warning', title: 'Selecciona destinatario', text: 'Busca y elige una persona de la lista.' });
             }
             delivery.userId = selectedUser.id;
         }
         if (deliveryType === 'rol_aplicacion') {
             if (!appRoleId) {
-                return Swal.fire({ icon: 'warning', title: 'Elija un rol', text: 'Seleccione el rol de aplicación destinatario.' });
+                return Swal.fire({ icon: 'warning', title: 'Elige un rol', text: 'Selecciona el rol de aplicación destinatario.' });
             }
             delivery.appRoleId = parseInt(appRoleId, 10);
         }
@@ -227,7 +227,7 @@ export default function Avisos() {
             await Swal.fire({
                 icon: 'success',
                 title: 'Aviso enviado',
-                text: 'Los destinatarios lo verán en su bandeja.',
+                text: 'Los destinatarios lo verán en su bandeja de avisos.',
                 confirmButtonColor: '#6E9EFF',
             });
             setTitle('');
@@ -262,7 +262,7 @@ export default function Avisos() {
                     <p className="text-slate-600 mt-2 text-sm max-w-xl">
                         {isSocio
                             ? 'Comunicaciones oficiales del centro. Los avisos nuevos se marcan automáticamente al abrirlos.'
-                            : 'Bandeja de comunicaciones internas. Si tiene permiso de redacción, puede dirigir avisos a colectivos concretos o a una persona.'}
+                            : 'Comunicaciones internas. Si tienes permiso de redacción, puedes enviar avisos a colectivos concretos o a una persona.'}
                     </p>
                 </div>
                 {!loadingInbox && unreadCount > 0 && (
@@ -315,7 +315,7 @@ export default function Avisos() {
                     ) : inbox.length === 0 ? (
                         <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-500">
                             <CheckCircle2 className="mx-auto text-emerald-500 mb-3" size={36} />
-                            <p className="font-medium text-slate-700">No hay avisos en su bandeja.</p>
+                            <p className="font-medium text-slate-700">No tienes avisos nuevos.</p>
                             <p className="text-sm mt-1">Cuando reciba comunicaciones aparecerán aquí.</p>
                         </div>
                     ) : (
@@ -402,7 +402,7 @@ export default function Avisos() {
                             onChange={(e) => setBody(e.target.value)}
                             rows={10}
                             maxLength={12000}
-                            placeholder="Escriba el texto del aviso con el tono profesional adecuado…"
+                            placeholder="Escribe el contenido del aviso…"
                             className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E9EFF]/30 focus:border-[#6E9EFF] resize-y min-h-[160px]"
                         />
                         <p className="text-xs text-slate-400 mt-1">{body.length} / 12.000</p>
@@ -537,7 +537,7 @@ export default function Avisos() {
                             <Loader2 className="animate-spin" size={22} /> Cargando…
                         </div>
                     ) : sent.length === 0 ? (
-                        <p className="p-8 text-center text-slate-500 text-sm">Aún no ha enviado comunicaciones desde este panel.</p>
+                        <p className="p-8 text-center text-slate-500 text-sm">Aún no has enviado ninguna comunicación.</p>
                     ) : (
                         <ul className="divide-y divide-slate-100">
                             {sent.map((row) => (

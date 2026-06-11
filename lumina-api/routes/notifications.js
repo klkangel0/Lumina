@@ -57,7 +57,7 @@ router.get('/me', async (req, res) => {
         console.error('GET /notifications/me', e);
         const msg =
             e.code === 'P2021' || (e.message && e.message.includes('does not exist'))
-                ? 'Falta aplicar el esquema de base de datos (avisos). Ejecute en lumina-api: npx prisma db push'
+                ? 'Error interno al cargar los avisos. Contacte con el equipo técnico.'
                 : 'Error al cargar avisos.';
         return res.status(500).json({ message: msg });
     }

@@ -9,50 +9,51 @@ datasource db {
 
 // Delegaciones (Branches / Locations)
 model Delegation {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  shortName   String?  // e.g. "MTR", "ABR"
-  address     String?
-  city        String?
-  phone       String?
-  email       String?
-  color       String   @default("#6E9EFF") // Hex color for badge/UI
-  isSystem    Boolean  @default(false) // System delegations cannot be deleted
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  shortName String? // e.g. "MTR", "ABR"
+  address   String?
+  city      String?
+  phone     String?
+  email     String?
+  color     String   @default("#6E9EFF") // Hex color for badge/UI
+  isSystem  Boolean  @default(false) // System delegations cannot be deleted
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  subvenciones Subvencion[]
+  subvenciones   Subvencion[]
   inventoryItems InventoryItem[]
-  socios        Socio[]
-  patients      Patient[]
+  socios         Socio[]
+  patients       Patient[]
 
   @@map("delegations")
 }
 
 // Subvenciones (Grants)
 model Subvencion {
-  id               String   @id @default(uuid())
-  name             String
-  description      String?  @db.Text
-  amount           Float?
-  
-  delegationId     Int
-  delegation       Delegation @relation(fields: [delegationId], references: [id], onDelete: Cascade)
-  
-  status           SubvencionStatus @default(SOLICITADO)
-  
-  deadlineDate     DateTime? // Fecha límite de justificación
-  justifiedDate    DateTime? // Cuando se subió el archivo
-  
-  docJustification String?   // Ruta al documento PDF/IMG
-  attachments      SubvencionAttachment[]
-  
-  userId           String?   // User who created/manages it
-  user             User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id          String  @id @default(uuid())
+  name        String
+  description String? @db.Text
+  amount      Float?
 
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  delegationId Int
+  delegation   Delegation @relation(fields: [delegationId], references: [id], onDelete: Cascade)
+
+  status SubvencionStatus @default(SOLICITADO)
+
+  deadlineDate   DateTime? // Fecha límite de justificación
+  justifiedDate  DateTime? // Cuando se subió el archivo
+  reminderSentAt DateTime? // Cuándo se envió el aviso automático de fecha límite (evita duplicados)
+
+  docJustification String? // Ruta al documento PDF/IMG
+  attachments      SubvencionAttachment[]
+
+  userId String? // User who created/manages it
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("subvenciones")
 }
@@ -84,7 +85,7 @@ enum SubvencionStatus {
 model User {
   id        String   @id @default(uuid())
   username  String   @unique
-  password  String   // Hashed
+  password  String // Hashed
   role      Role     @default(WORKER)
   name      String
   email     String?  @unique
@@ -96,39 +97,61 @@ model User {
   appRole   AppRole? @relation(fields: [appRoleId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relations
-  activities Activity[] @relation("ActivityWorker")
-  subvenciones Subvencion[]
-  authoredNotifications Notification[] @relation("AuthoredNotifications")
-  notificationReceipts  NotificationReceipt[]
-  passwordResetChallenges PasswordResetChallenge[]
-  passwordResetSessions  PasswordResetSession[]
-  seguros Seguro[]
-  sepaSettingsUpdates SepaSettings[] @relation("SepaSettingsUpdatedBy")
-  sepaReceiptsCreated SepaReceipt[] @relation("SepaReceiptCreatedBy")
-  sepaTemplatesCreated SepaReceiptTemplate[] @relation("SepaTemplateCreatedBy")
+  activities                  Activity[]               @relation("ActivityWorker")
+  subvenciones                Subvencion[]
+  authoredNotifications       Notification[]           @relation("AuthoredNotifications")
+  notificationReceipts        NotificationReceipt[]
+  passwordResetChallenges     PasswordResetChallenge[]
+  passwordResetSessions       PasswordResetSession[]
+  seguros                     Seguro[]
+  sepaSettingsUpdates         SepaSettings[]           @relation("SepaSettingsUpdatedBy")
+  notificationSettingsUpdates NotificationSettings[]   @relation("NotificationSettingsUpdatedBy")
+  sepaReceiptsCreated         SepaReceipt[]            @relation("SepaReceiptCreatedBy")
+  sepaTemplatesCreated        SepaReceiptTemplate[]    @relation("SepaTemplateCreatedBy")
 }
 
-// Configuración global SEPA / domiciliaciones (una sola fila, id = 1). Auditoría extendida en fases posteriores.
+// Configuración global SEPA / domiciliaciones (una sola fila, id = 1).
 model SepaSettings {
-  id                 Int      @id // singleton: siempre 1
-  sepaEnabled        Boolean  @default(false)
-  creditorLegalName  String?  @db.VarChar(255)
-  creditorIban       String?  @db.VarChar(34)
-  creditorIdentifier String?  @db.VarChar(64)
-  bankExtraJson      String?  @db.Text
-  // Configuración de cuotas SEPA (fase 3 UX): elección por socio y defaults
-  memberChoosesPlan  Boolean  @default(false) // ¿el socio elige su cuota?
-  memberAllowedPlanFrequencies String? @db.VarChar(80) // CSV: MONTHLY,QUARTERLY,YEARLY
-  defaultPlanTemplateId Int? // plantilla por defecto cuando el socio NO elige
-  requirePlanConfirmOnApproval Boolean @default(true) // si el socio elige, requiere confirmación al aprobar
-  updatedByUserId    String?
-  updatedBy          User?    @relation("SepaSettingsUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                           Int      @id // singleton: siempre 1
+  sepaEnabled                  Boolean  @default(false)
+  creditorLegalName            String?  @db.VarChar(255)
+  creditorIban                 String?  @db.VarChar(34)
+  creditorIdentifier           String?  @db.VarChar(64)
+  bankExtraJson                String?  @db.Text
+  // Cuotas SEPA: elección por socio y valores por defecto
+  memberChoosesPlan            Boolean  @default(false) // ¿el socio elige su cuota?
+  memberAllowedPlanFrequencies String?  @db.VarChar(80) // CSV: MONTHLY,QUARTERLY,YEARLY
+  defaultPlanTemplateId        Int? // plantilla por defecto cuando el socio NO elige
+  requirePlanConfirmOnApproval Boolean  @default(true) // si el socio elige, requiere confirmación al aprobar
+  updatedByUserId              String?
+  updatedBy                    User?    @relation("SepaSettingsUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
 
   @@map("sepa_settings")
+}
+
+// Configuración global de notificaciones automáticas por correo (una sola fila, id = 1).
+model NotificationSettings {
+  id                     Int       @id // singleton: siempre 1
+  // Seguros: aviso al usuario que lo creó N meses antes de caducar
+  seguroEnabled          Boolean   @default(true)
+  seguroMonthsBefore     Int       @default(1)
+  // Subvenciones: aviso al usuario que la creó N meses antes de la fecha límite
+  subvencionEnabled      Boolean   @default(true)
+  subvencionMonthsBefore Int       @default(1)
+  // Actividades: aviso a la delegación organizadora cada vez que alguien se inscribe
+  actividadEnrollEnabled Boolean   @default(true)
+  // Última ejecución de la comprobación diaria (para no repetir y funcionar bajo Passenger)
+  lastDailyRunAt         DateTime?
+  updatedByUserId        String?
+  updatedBy              User?     @relation("NotificationSettingsUpdatedBy", fields: [updatedByUserId], references: [id], onDelete: SetNull)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@map("notification_settings")
 }
 
 enum SepaReceiptStatus {
@@ -158,36 +181,36 @@ model SepaReceiptTemplate {
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @updatedAt
 
-  sociosMonthly   Socio[]               @relation("SocioMonthlySepaTemplate")
-  sociosProposed  Socio[]               @relation("SocioProposedSepaTemplate")
+  sociosMonthly  Socio[] @relation("SocioMonthlySepaTemplate")
+  sociosProposed Socio[] @relation("SocioProposedSepaTemplate")
 
   @@index([active, frequency])
   @@map("sepa_receipt_templates")
 }
 
-// Recibos SEPA manuales (fase 2): se crean bajo demanda por admin/junta/junta_plus.
+// Recibos SEPA manuales: se crean bajo demanda por admin/junta/junta_plus.
 model SepaReceipt {
-  id                     String            @id @default(uuid())
-  socioId                Int
-  socio                  Socio             @relation(fields: [socioId], references: [id], onDelete: Cascade)
+  id      String @id @default(uuid())
+  socioId Int
+  socio   Socio  @relation(fields: [socioId], references: [id], onDelete: Cascade)
 
   // Quién lo creó (usuario del sistema)
-  createdByUserId        String?
-  createdBy              User?             @relation("SepaReceiptCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdByUserId String?
+  createdBy       User?   @relation("SepaReceiptCreatedBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
-  amountCents            Int
-  currency               String            @default("EUR") @db.VarChar(3)
-  concept                String            @db.VarChar(140)
+  amountCents             Int
+  currency                String            @default("EUR") @db.VarChar(3)
+  concept                 String            @db.VarChar(140)
   requestedCollectionDate DateTime?
-  status                 SepaReceiptStatus @default(DRAFT)
+  status                  SepaReceiptStatus @default(DRAFT)
 
   // Snapshot de datos del mandato usados para generar el recibo
-  debtorIbanSnapshot     String?           @db.VarChar(34)
-  mandateUmSnapshot      String?           @db.VarChar(35)
+  debtorIbanSnapshot      String?   @db.VarChar(34)
+  mandateUmSnapshot       String?   @db.VarChar(35)
   mandateSignedAtSnapshot DateTime?
 
-  createdAt              DateTime          @default(now())
-  updatedAt              DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([socioId])
   @@index([status, createdAt])
@@ -227,82 +250,82 @@ enum Role {
 
 // Empleados del Centro (Human Resources)
 model Worker {
-  id              String   @id @default(uuid())
-  name            String
-  dni             String   @unique
-  email           String?  
-  address         String?  // Dirección particular
-  jobPosition     String   // Psicólogo, Logopeda, etc.
-  customJobType   String?  // Por si eligen 'Otros'
-  tags            String?  @db.LongText // JSON array de los centros: ["Martorell", "Assotea Central", "Otra manual..."]
-  
-  // File Paths (Almacenados en /uploads)
-  contractFile    String?
-  lopdFile        String?
-  dniFile         String?
-  extraFile1      String?
-  extraFile2      String?
-  extraFile3      String?
+  id            String  @id @default(uuid())
+  name          String
+  dni           String  @unique
+  email         String?
+  address       String? // Dirección particular
+  jobPosition   String // Psicólogo, Logopeda, etc.
+  customJobType String? // Por si eligen 'Otros'
+  tags          String? @db.LongText // JSON array de los centros: ["Martorell", "Assotea Central", "Otra manual..."]
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  // File Paths (Almacenados en /uploads)
+  contractFile String?
+  lopdFile     String?
+  dniFile      String?
+  extraFile1   String?
+  extraFile2   String?
+  extraFile3   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // Socios (Main Members/Tutors)
 model Socio {
-  id             Int       @id @default(autoincrement())
-  memberCode     String    @unique // e.g. "SOC-00001"
-  name           String
-  lastName       String
-  dni            String?   @unique
-  email          String?   
-  phone          String?
-  phone2         String?
-  address        String?
-  city           String?
-  municipio      String?   // Municipio Baix Llobregat (lista cerrada)
-  postalCode     String?
-  iban           String?   @db.VarChar(34) // IBAN normalizado (sin espacios); ES = 24 caracteres
+  id                      Int                  @id @default(autoincrement())
+  memberCode              String               @unique // e.g. "SOC-00001"
+  name                    String
+  lastName                String
+  dni                     String?              @unique
+  email                   String?
+  phone                   String?
+  phone2                  String?
+  address                 String?
+  city                    String?
+  municipio               String? // Municipio Baix Llobregat (lista cerrada)
+  postalCode              String?
+  iban                    String?              @db.VarChar(34) // IBAN normalizado (sin espacios); ES = 24 caracteres
   /// Referencia única del mandato SEPA (UMR), máx. 35 car.; única por instalación entre socios con valor
-  sepaMandateUm  String?   @unique @db.VarChar(35)
-  sepaMandateSignedAt DateTime? // Fecha de firma del mandato (documento SEPA)
+  sepaMandateUm           String?              @unique @db.VarChar(35)
+  sepaMandateSignedAt     DateTime? // Fecha de firma del mandato (documento SEPA)
   // Cuota mensual SEPA: plantilla asignada + próxima fecha de cargo
-  sepaMonthlyTemplateId Int?
-  sepaMonthlyTemplate   SepaReceiptTemplate? @relation("SocioMonthlySepaTemplate", fields: [sepaMonthlyTemplateId], references: [id], onDelete: SetNull)
+  sepaMonthlyTemplateId   Int?
+  sepaMonthlyTemplate     SepaReceiptTemplate? @relation("SocioMonthlySepaTemplate", fields: [sepaMonthlyTemplateId], references: [id], onDelete: SetNull)
   sepaMonthlyNextChargeAt DateTime?
   // Si el socio puede elegir su cuota, aquí se guarda su propuesta hasta confirmación en aprobación
-  sepaProposedTemplateId Int?
-  sepaProposedTemplate   SepaReceiptTemplate? @relation("SocioProposedSepaTemplate", fields: [sepaProposedTemplateId], references: [id], onDelete: SetNull)
-  gender         String?   // masculino, femenino, no_binario, otro, prefiero_no_decir
-  pronouns       String?   // el, ella, elle, otro
-  customPronouns String?
-  joinDate       DateTime  @default(now())
-  status         Status    @default(ACTIVE)
-  notes          String?   @db.Text
-  contactedAt    DateTime? 
-  
-  delegationId   Int?
-  delegation     Delegation? @relation(fields: [delegationId], references: [id], onDelete: SetNull)
+  sepaProposedTemplateId  Int?
+  sepaProposedTemplate    SepaReceiptTemplate? @relation("SocioProposedSepaTemplate", fields: [sepaProposedTemplateId], references: [id], onDelete: SetNull)
+  gender                  String? // masculino, femenino, no_binario, otro, prefiero_no_decir
+  pronouns                String? // el, ella, elle, otro
+  customPronouns          String?
+  joinDate                DateTime             @default(now())
+  status                  Status               @default(ACTIVE)
+  notes                   String?              @db.Text
+  contactedAt             DateTime?
 
-  hasSpecialNeeds Boolean   @default(false)
-  
+  delegationId Int?
+  delegation   Delegation? @relation(fields: [delegationId], references: [id], onDelete: SetNull)
+
+  hasSpecialNeeds Boolean @default(false)
+
   // Documents (file paths)
-  docId          String?   // DNI / NIE
-  docSepa        String?   // Mandato SEPA
-  docFamilyBook  String?   // Libro de Familia
-  docPhoto       String?   // Foto carnet
+  docId         String? // DNI / NIE
+  docSepa       String? // Mandato SEPA
+  docFamilyBook String? // Libro de Familia
+  docPhoto      String? // Foto carnet
 
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  user           User?
-  patients       Patient[]
-  activities     Activity[] @relation("ActivitySocio")
+  user                      User?
+  patients                  Patient[]
+  activities                Activity[]                 @relation("ActivitySocio")
   activityEnrollmentDetails ActivityEnrollmentDetail[]
-  inventoryItems InventoryItem[]
-  questionnaire  SocioQuestionnaire?
-  sepaReceipts   SepaReceipt[]
+  inventoryItems            InventoryItem[]
+  questionnaire             SocioQuestionnaire?
+  sepaReceipts              SepaReceipt[]
 }
 
 // Cuestionario de alta (postulador): Parte 1–3 como JSON serializado (LongText: compatible MariaDB sin tipo JSON)
@@ -327,50 +350,50 @@ enum Status {
 
 // Patients (Hijos / Beneficiarios)
 model Patient {
-  id              String   @id @default(uuid())
-  patientCode     String   @unique // e.g. "SOC-001-01"
-  socioId         Int
-  socio           Socio    @relation(fields: [socioId], references: [id], onDelete: Cascade)
-  
-  name            String
-  lastName        String
-  birthDate       DateTime?
-  gender          String?
-  relationship    String? // e.g. padre, madre, hermano, etc.
-  
-  // Structured Medical and Educational Data
-  autismDegree    String?
-  disabilityPct   Int?
-  specialNeeds    String?  @db.Text
-  allergies       String?  @db.Text
-  school          String?
-  schoolYear      String?
-  
-  notes           String?  @db.Text
+  id          String @id @default(uuid())
+  patientCode String @unique // e.g. "SOC-001-01"
+  socioId     Int
+  socio       Socio  @relation(fields: [socioId], references: [id], onDelete: Cascade)
 
-  address         String?  @db.VarChar(500)
-  municipio       String?  @db.VarChar(120)
-  delegationId    Int?
-  delegation      Delegation? @relation(fields: [delegationId], references: [id], onDelete: SetNull)
-  
+  name         String
+  lastName     String
+  birthDate    DateTime?
+  gender       String?
+  relationship String? // e.g. padre, madre, hermano, etc.
+
+  // Structured Medical and Educational Data
+  autismDegree  String?
+  disabilityPct Int?
+  specialNeeds  String? @db.Text
+  allergies     String? @db.Text
+  school        String?
+  schoolYear    String?
+
+  notes String? @db.Text
+
+  address      String?     @db.VarChar(500)
+  municipio    String?     @db.VarChar(120)
+  delegationId Int?
+  delegation   Delegation? @relation(fields: [delegationId], references: [id], onDelete: SetNull)
+
   // Documents (file paths)
-  docMedical      String?  // Informe médico
-  docDisability   String?  // Certificado discapacidad
-  docSchool       String?  // Informe escolar
-  docId           String?  // DNI / Documento de identidad
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  docMedical    String? // Informe médico
+  docDisability String? // Certificado discapacidad
+  docSchool     String? // Informe escolar
+  docId         String? // DNI / Documento de identidad
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  activities      Activity[] @relation("ActivityPatient")
+  activities Activity[] @relation("ActivityPatient")
 }
 
 // Activities / Sessions
 model Activity {
-  id          String   @id @default(uuid())
-  title       String
-  description String?  @db.Text
+  id                   String    @id @default(uuid())
+  title                String
+  description          String?   @db.Text
   // Dates & Registration
   startTime            DateTime
   endTime              DateTime
@@ -378,23 +401,23 @@ model Activity {
   maxCapacity          Int?
 
   // Location/Room
-  location             String?
+  location String?
 
   // Fixed Organizer Data (Snapshot from creator)
-  organizerName        String?
-  organizerPhone       String?
-  organizerEmail       String?
-  organizerDelegation  String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  organizerName       String?
+  organizerPhone      String?
+  organizerEmail      String?
+  organizerDelegation String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  workerId    String?
-  worker      User?    @relation("ActivityWorker", fields: [workerId], references: [id])
-  
-  socios      Socio[]  @relation("ActivitySocio")
-  patients    Patient[] @relation("ActivityPatient")
+  workerId String?
+  worker   User?   @relation("ActivityWorker", fields: [workerId], references: [id])
+
+  socios            Socio[]                    @relation("ActivitySocio")
+  patients          Patient[]                  @relation("ActivityPatient")
   enrollmentDetails ActivityEnrollmentDetail[]
 }
 
@@ -419,7 +442,7 @@ model ActivityEnrollmentDetail {
 model AppRole {
   id          Int      @id @default(autoincrement())
   name        String   @unique // Internal slug: admin, junta, jefe_personal
-  displayName String   // Display name: Administrador, Junta Directiva
+  displayName String // Display name: Administrador, Junta Directiva
   color       String   @default("#6c757d") // Hex color for badge
   description String?  @db.Text
   isSystem    Boolean  @default(false) // System roles cannot be deleted
@@ -434,13 +457,13 @@ model AppRole {
 }
 
 model Module {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique // Internal slug: usuarios, socios
-  displayName String   // Sidebar display name
-  icon        String   @default("circle") // Lucide icon name
-  route       String   // URL path
-  order       Int      @default(0)
-  active      Boolean  @default(true)
+  id          Int     @id @default(autoincrement())
+  name        String  @unique // Internal slug: usuarios, socios
+  displayName String // Sidebar display name
+  icon        String  @default("circle") // Lucide icon name
+  route       String // URL path
+  order       Int     @default(0)
+  active      Boolean @default(true)
 
   permissions Permission[]
 
@@ -464,27 +487,27 @@ model Permission {
 }
 
 model InventoryItem {
-  id             String    @id @default(uuid())
-  name           String
-  type           String    // e.g. "impresora", "teléfono", "ordenador", "tablet", "colchoneta"
-  group          String    @default("ADMINISTRATIVO") // "ADMINISTRATIVO" or "INTERVENCION"
-  serialNumber   String?
-  
+  id           String  @id @default(uuid())
+  name         String
+  type         String // e.g. "impresora", "teléfono", "ordenador", "tablet", "colchoneta"
+  group        String  @default("ADMINISTRATIVO") // "ADMINISTRATIVO" or "INTERVENCION"
+  serialNumber String?
+
   status         InventoryStatus @default(DISPONIBLE)
   assignmentType AssignmentType  @default(SEDE)
-  
-  delegationId   Int?
-  delegation     Delegation? @relation(fields: [delegationId], references: [id], onDelete: SetNull)
-  
-  socioId        Int?
-  socio          Socio?      @relation(fields: [socioId], references: [id], onDelete: SetNull)
-  
-  locationDetail String?   // e.g. "Planta 2, Despacho", "Habitación niño"
+
+  delegationId Int?
+  delegation   Delegation? @relation(fields: [delegationId], references: [id], onDelete: SetNull)
+
+  socioId Int?
+  socio   Socio? @relation(fields: [socioId], references: [id], onDelete: SetNull)
+
+  locationDetail String? // e.g. "Planta 2, Despacho", "Habitación niño"
   deliveryDate   DateTime?
   description    String?   @db.Text
 
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("inventory_items")
 }
@@ -506,23 +529,23 @@ enum AssignmentType {
 // ============================================
 
 model ExternalProfessional {
-  id                String   @id @default(uuid())
-  name              String
-  lastName          String
-  dni               String?
-  collegiateNumber  String?
+  id               String  @id @default(uuid())
+  name             String
+  lastName         String
+  dni              String?
+  collegiateNumber String?
 
   specialty         String
   collaborationType String
   hourlyRate        Float?
   company           String?
 
-  email             String?
-  phone             String?
-  notes             String?  @db.Text
+  email String?
+  phone String?
+  notes String? @db.Text
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("external_professionals")
 }
@@ -533,20 +556,21 @@ enum SeguroStatus {
 }
 
 model Seguro {
-  id          String      @id @default(uuid())
-  name        String
-  purpose     String      @db.Text
-  validFrom   DateTime
-  validTo     DateTime?
-  expiryDate  DateTime
-  amount      Float?
-  status      SeguroStatus @default(ACTIVO)
+  id             String       @id @default(uuid())
+  name           String
+  purpose        String       @db.Text
+  validFrom      DateTime
+  validTo        DateTime?
+  expiryDate     DateTime
+  amount         Float?
+  status         SeguroStatus @default(ACTIVO)
+  reminderSentAt DateTime? // Cuándo se envió el aviso automático de caducidad (evita duplicados)
 
-  userId      String?
-  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([expiryDate])
   @@map("seguros")

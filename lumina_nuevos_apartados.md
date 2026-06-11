@@ -1,6 +1,6 @@
 # 📋 LUMINA — Especificación de Nuevos Apartados
 
-Este documento detalla las nuevas funcionalidades que se deben implementar en la aplicación Lumina. Está pensado para que cualquier desarrollador o IA entienda exactamente qué hay que hacer, cómo funciona, y qué campos y lógica se requieren.
+Este documento detalla las funcionalidades implementadas en la aplicación Lumina. Sirve de referencia técnica para el equipo de desarrollo: qué hace cada apartado, cómo funciona y qué campos y lógica utiliza.
 
 > **IMPORTANTE**: Este documento es complementario al archivo `lumina_project_context.md` que contiene todo el contexto técnico del proyecto (stack, arquitectura, base de datos, APIs, etc). Léelo primero si no conoces el proyecto.
 

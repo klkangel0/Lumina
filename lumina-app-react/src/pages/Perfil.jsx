@@ -303,7 +303,7 @@ const Perfil = () => {
                                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider w-32 shrink-0 flex items-center gap-1.5"><Mail size={13} /> Email</label>
                                 {editing ? (
                                     <input type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))}
-                                        className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all" placeholder="email@ejemplo.com" />
+                                        className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all" placeholder="correo@assotea.cat" />
                                 ) : (
                                     <p className="text-sm font-medium text-slate-700">{profile?.email || <span className="text-slate-300 italic">no especificado</span>}</p>
                                 )}

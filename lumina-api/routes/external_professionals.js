@@ -6,12 +6,8 @@ const checkPermission = require('../middleware/permissionMiddleware');
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Protect all routes with authentication
 router.use(verifyToken);
 
-// ---------------------------------------------------
-// 1. GET ALL External Professionals
-// ---------------------------------------------------
 router.get('/', checkPermission('profesionales_externos', 'canView'), async (req, res) => {
     try {
         const professionals = await prisma.externalProfessional.findMany({
@@ -25,9 +21,6 @@ router.get('/', checkPermission('profesionales_externos', 'canView'), async (req
     }
 });
 
-// ---------------------------------------------------
-// 2. CREATE A Profesional Externo
-// ---------------------------------------------------
 router.post('/', checkPermission('profesionales_externos', 'canCreate'), async (req, res) => {
     try {
         const {
@@ -67,9 +60,6 @@ router.post('/', checkPermission('profesionales_externos', 'canCreate'), async (
     }
 });
 
-// ---------------------------------------------------
-// 3. EDIT A Profesional Externo
-// ---------------------------------------------------
 router.put('/:id', checkPermission('profesionales_externos', 'canEdit'), async (req, res) => {
     try {
         const { id } = req.params;
@@ -114,9 +104,6 @@ router.put('/:id', checkPermission('profesionales_externos', 'canEdit'), async (
     }
 });
 
-// ---------------------------------------------------
-// 4. DELETE A Profesional Externo
-// ---------------------------------------------------
 router.delete('/:id', checkPermission('profesionales_externos', 'canDelete'), async (req, res) => {
     try {
         const { id } = req.params;

@@ -118,7 +118,7 @@ router.post('/', verifyToken, uploadMiddleware, async (req, res) => {
             }
         });
 
-        res.status(201).json({ success: true, message: 'Trabajador registrado exitosamente.', worker });
+        res.status(201).json({ success: true, message: 'Trabajador registrado correctamente.', worker });
     } catch (error) {
         console.error('Error creating worker:', error);
         res.status(500).json({ message: 'No se pudo registrar el trabajador: ' + error.message });

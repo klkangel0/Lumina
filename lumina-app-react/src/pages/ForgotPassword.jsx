@@ -95,9 +95,9 @@ export default function ForgotPassword() {
                     <div className="text-center mb-6">
                         <h2 className="text-2xl font-semibold text-slate-800">Recuperar contraseña</h2>
                         <p className="text-sm text-slate-500 mt-2">
-                            {step === 1 && 'Indique el correo con el que se registró. Le enviaremos un código.'}
-                            {step === 2 && 'Revise su bandeja de entrada (y spam) e introduzca el código de 6 dígitos.'}
-                            {step === 3 && 'Elija una nueva contraseña para su cuenta.'}
+                            {step === 1 && 'Escribe el correo con el que te registraste. Te enviaremos un código.'}
+                            {step === 2 && 'Revisa tu bandeja de entrada (también en spam) e introduce el código de 6 dígitos.'}
+                            {step === 3 && 'Elige una nueva contraseña para tu cuenta.'}
                         </p>
                     </div>
 
@@ -132,7 +132,7 @@ export default function ForgotPassword() {
                                                 type="email"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
-                                                placeholder="correo@ejemplo.org"
+                                                placeholder="correo@assotea.cat"
                                                 required
                                                 disabled={loading}
                                                 className="pl-10"

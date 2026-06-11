@@ -6,10 +6,8 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Middleware to protect all /api/usuarios routes
 router.use(verifyToken);
 
-// 1. GET ALL USERS
 router.get('/', async (req, res) => {
     try {
         const users = await prisma.user.findMany({
@@ -36,7 +34,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// 2. CREATE USER
 router.post('/', async (req, res) => {
     try {
         const { username, password, name, role, email, appRoleId } = req.body;
@@ -64,14 +61,13 @@ router.post('/', async (req, res) => {
             }
         });
 
-        res.status(201).json({ message: 'Usuario creado exitosamente', user: newUser });
+        res.status(201).json({ message: 'Usuario creado correctamente.', user: newUser });
     } catch (error) {
         console.error("Error creating user:", error);
         res.status(500).json({ message: 'No se pudo crear el usuario. Revisa el nombre de usuario (debe ser único).' });
     }
 });
 
-// 3. UPDATE USER
 router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -101,21 +97,20 @@ router.put('/:id', async (req, res) => {
             }
         });
 
-        res.json({ message: 'Usuario actualizado exitosamente', user: updatedUser });
+        res.json({ message: 'Usuario actualizado correctamente.', user: updatedUser });
     } catch (error) {
         console.error("Error updating user:", error);
         res.status(500).json({ message: 'No se pudo actualizar el usuario.' });
     }
 });
 
-// 4. DELETE USER
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
         await prisma.user.delete({
             where: { id }
         });
-        res.json({ message: 'Usuario eliminado exitosamente' });
+        res.json({ message: 'Usuario eliminado correctamente.' });
     } catch (error) {
         console.error("Error deleting user:", error);
         res.status(500).json({ message: 'No se pudo eliminar el usuario.' });

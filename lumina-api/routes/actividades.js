@@ -1,6 +1,7 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const verifyToken = require('../middleware/authMiddleware');
+const { notifyActivityEnrollment } = require('../lib/notifications');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -133,7 +134,7 @@ router.post('/', verifyToken, async (req, res) => {
             }
         });
 
-        res.status(201).json({ success: true, message: 'Actividad creada exitosamente.', activity });
+        res.status(201).json({ success: true, message: 'Actividad creada correctamente.', activity });
     } catch (error) {
         console.error('Error creating activity:', error);
         res.status(500).json({ message: 'No se pudo crear la actividad: ' + error.message });
@@ -171,7 +172,7 @@ router.put('/:id', verifyToken, async (req, res) => {
             }
         });
 
-        res.json({ success: true, message: 'Actividad actualizada exitosamente.', activity });
+        res.json({ success: true, message: 'Actividad actualizada correctamente.', activity });
     } catch (error) {
         console.error('Error updating activity:', error);
         res.status(500).json({ message: 'No se pudo actualizar la actividad: ' + error.message });
@@ -259,6 +260,15 @@ router.post('/:id/enroll', verifyToken, async (req, res) => {
                 }
             });
         });
+
+        // Aviso a la delegación organizadora (no bloquea la respuesta ni rompe si falla).
+        notifyActivityEnrollment(prisma, {
+            activity,
+            socioId,
+            guestChildrenUnder18,
+            guestAdults18Plus,
+            patientCount: patientIds.length,
+        }).catch((e) => console.error('[actividades] aviso de inscripción falló:', e.message));
 
         res.json({ success: true, message: '¡Inscripción realizada con éxito!' });
     } catch (error) {

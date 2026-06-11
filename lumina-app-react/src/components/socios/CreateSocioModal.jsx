@@ -315,7 +315,7 @@ const CreateSocioModal = ({ isOpen, onClose, onSave, socio }) => {
                                         onChange={e => handleChange('email', e.target.value)}
                                         required
                                         autoComplete="off"
-                                        placeholder="usuario@ejemplo.com"
+                                        placeholder="correo@assotea.cat"
                                         className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
                                     />
                                 </div>
@@ -464,7 +464,7 @@ const CreateSocioModal = ({ isOpen, onClose, onSave, socio }) => {
                                     <h3 className="text-sm font-bold text-slate-700">SEPA / domiciliación</h3>
                                 </div>
                                 <p className="text-xs text-slate-500 -mt-2">
-                                    Obligatorio para socios <strong>activos</strong> si el centro tiene SEPA activado. Los recibos se generarán manualmente en una fase posterior.
+                                    Obligatorio para socios <strong>activos</strong> si el centro tiene SEPA activado. Los recibos se generan desde el apartado de Recibos SEPA.
                                 </p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="sm:col-span-2">

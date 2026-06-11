@@ -1,4 +1,4 @@
-# Despliegue en Plesk (gassotea.org) — fase desarrollo
+# Despliegue en producción (gassotea.org)
 
 Puedes **borrar lo que haya** en `httpdocs/lumina-api` y subir esta versión. No hace falta migrar ni conservar datos viejos.
 

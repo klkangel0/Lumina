@@ -65,7 +65,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Credenciales inválidas.' });
         }
 
-        // 2. Check Password
+        // Verificar contraseña
         let isMatch = false;
         if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
             isMatch = await bcrypt.compare(password, user.password);
@@ -77,7 +77,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Credenciales inválidas.' });
         }
 
-        // 3. Format Permissions Matrix
+        // Construir matriz de permisos
         const permissionsData = {};
         if (user.appRole && user.appRole.permissions) {
             user.appRole.permissions.forEach(p => {
@@ -93,7 +93,7 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // 4. Generate Token
+        // Generar token JWT
         const payload = {
             id: user.id,
             username: user.username,
@@ -109,9 +109,8 @@ router.post('/login', async (req, res) => {
             expiresIn: '24h'
         });
 
-        // 5. Return Data
         res.json({
-            message: 'Login exitoso',
+            message: 'Acceso correcto.',
             token,
             user: payload
         });
@@ -131,25 +130,19 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ message: 'Faltan campos obligatorios.' });
         }
 
-        // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) return res.status(400).json({ message: 'El formato del email no es válido.' });
 
-        // Check if username exists
         const existingUser = await prisma.user.findUnique({ where: { username } });
         if (existingUser) return res.status(400).json({ message: 'El nombre de usuario ya está en uso.' });
 
-        // Check if email exists in socios
         const existingEmail = await prisma.socio.findFirst({ where: { email } });
         if (existingEmail) return res.status(400).json({ message: 'El correo electrónico ya está registrado.' });
 
-        // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Transaction allows us to rollback if anything fails
         const result = await prisma.$transaction(async (tx) => {
-            // 1. Create Socio as PENDING
             const socio = await tx.socio.create({
                 data: {
                     memberCode: 'TEMP-' + Date.now(),
@@ -161,14 +154,13 @@ router.post('/register', async (req, res) => {
                 }
             });
 
-            // Update with Member Code
             const memberCode = 'SOC-' + String(socio.id).padStart(5, '0');
             await tx.socio.update({
                 where: { id: socio.id },
                 data: { memberCode }
             });
 
-            // 2. Create User — assign as "Postulador" role (will be promoted to "Socio" upon approval)
+            // Asignar rol "Postulador" hasta aprobación
             const postuladorRole = await tx.appRole.findUnique({ where: { name: 'user' } });
 
             await tx.user.create({

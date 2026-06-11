@@ -31,8 +31,9 @@ const externalProfessionalsRoutes = require('./routes/external_professionals');
 const notificationsRoutes = require('./routes/notifications');
 const sepaSettingsRoutes = require('./routes/sepaSettings');
 const sepaRecibosRoutes = require('./routes/sepaRecibos');
+const notificationSettingsRoutes = require('./routes/notificationSettings');
+const { runDailyNotificationChecks, maybeRunDailyChecks } = require('./lib/notifications');
 const cron = require('node-cron');
-const nodemailer = require('nodemailer');
 
 const app = express();
 const prisma = new PrismaClient();
@@ -62,6 +63,15 @@ if (process.env.NODE_ENV !== 'production') {
 }
 app.use(express.json({ limit: '10mb' }));
 
+// Comprobación diaria perezosa de notificaciones (seguros/subvenciones). Funciona también bajo
+// Passenger (donde node-cron no corre): se dispara como mucho una vez al día con las peticiones.
+app.use((req, res, next) => {
+    if (req.method === 'GET' || req.method === 'HEAD') {
+        maybeRunDailyChecks(prisma).catch(() => {});
+    }
+    next();
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/socios', sociosRoutes);
 app.use('/api/usuarios', usuariosRoutes);
@@ -80,9 +90,10 @@ app.use('/api/external-professionals', externalProfessionalsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/sepa-settings', sepaSettingsRoutes);
 app.use('/api/sepa-recibos', sepaRecibosRoutes);
+app.use('/api/notification-settings', notificationSettingsRoutes);
 
 app.get('/api/health', (req, res) => {
-    res.json({ message: 'Welcome to the new Lumina API (Node.js + Prisma)' });
+    res.json({ message: 'Lumina API operativa.' });
 });
 
 // En local, si existe ./build (p. ej. copia del despliegue), NO servirlo por defecto:
@@ -115,78 +126,13 @@ const onPassengerForCron =
 
 if (!onPassengerForCron) {
 cron.schedule('0 8 * * *', async () => {
-    console.log('[CRON] Running daily check for upcoming subvenciones deadlines...');
+    console.log('[CRON] Comprobación diaria de avisos (seguros y subvenciones)...');
     try {
-        const today = new Date();
-        const oneMonthFromNow = new Date(today);
-        oneMonthFromNow.setMonth(today.getMonth() + 1);
-        
-        // Formatear para buscar fechas exactas obviando la hora
-        const startOfDay = new Date(oneMonthFromNow);
-        startOfDay.setHours(0, 0, 0, 0);
-        
-        const endOfDay = new Date(oneMonthFromNow);
-        endOfDay.setHours(23, 59, 59, 999);
-
-        // Find all subvenciones expiring exactly in 1 month that are NOT justified
-        const upcoming = await prisma.subvencion.findMany({
-            where: {
-                deadlineDate: {
-                    gte: startOfDay,
-                    lte: endOfDay
-                },
-                status: {
-                    notIn: ['JUSTIFICADO', 'EN_ORDEN']
-                }
-            },
-            include: { delegation: true }
-        });
-
-        if (upcoming.length > 0) {
-            console.log(`[CRON] Found ${upcoming.length} subvenciones expiring in exactly 1 month.`);
-            
-            // En producción configurar SMTP en .env (mismo criterio que lib/email.js).
-            // Sin SMTP el cron solo registra en log; no envía correos reales.
-            const smtpHost = process.env.SMTP_HOST;
-            let transporter = null;
-            if (smtpHost && process.env.SMTP_USER && process.env.SMTP_PASS) {
-                transporter = nodemailer.createTransport({
-                    host: smtpHost,
-                    port: parseInt(process.env.SMTP_PORT || '587', 10),
-                    secure: process.env.SMTP_SECURE === 'true',
-                    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-                });
-            }
-
-            for (const sub of upcoming) {
-                if (!sub.delegation.email) continue; // Skip if delegation has no email
-                
-                const mailOptions = {
-                    from: '"Assotea System" <noreply@assotea.org>',
-                    to: sub.delegation.email,
-                    subject: `⚠️ ADVERTENCIA: La subvención "${sub.name}" caduca en 1 mes`,
-                    text: `Hola,\n\nEste es un recordatorio automático.\nLa subvención "${sub.name}" de la delegación ${sub.delegation.name} tiene como fecha límite de justificación el próximo ${sub.deadlineDate.toLocaleDateString()}.\n\nPor favor, justifícala lo antes posible.\n\nSaludos,\nEl equipo de Assotea`,
-                };
-                
-                try {
-                    if (transporter) {
-                        await transporter.sendMail({
-                            ...mailOptions,
-                            from: process.env.SMTP_FROM || mailOptions.from,
-                        });
-                        console.log(`[CRON] Sent email warning for ${sub.name} to ${sub.delegation.email}`);
-                    } else {
-                        console.log(`[CRON] SMTP no configurado; aviso omitido para ${sub.name}`);
-                    }
-                } catch (err) {
-                    console.error(`[CRON] Failed to send email for ${sub.name}:`, err);
-                }
-            }
-        } else {
-            console.log('[CRON] No upcoming deadlines in exactly 1 month.');
-        }
+        const summary = await runDailyNotificationChecks(prisma);
+        await prisma.notificationSettings.update({ where: { id: 1 }, data: { lastDailyRunAt: new Date() } }).catch(() => {});
+        console.log('[CRON] Resultado:', summary);
     } catch (error) {
-        console.error('[CRON] Error checking subvenciones deadlines:', error);
+        console.error('[CRON] Error en la comprobación de avisos:', error);
     }
 });
 }

@@ -43,7 +43,7 @@ router.get('/my-data', async (req, res) => {
         });
 
         if (!user || !user.socioId) {
-            return res.status(404).json({ message: 'No socio linked to this user.' });
+            return res.status(404).json({ message: 'Este usuario no tiene una ficha de socio vinculada.' });
         }
 
         const socio = await prisma.socio.findUnique({
@@ -72,18 +72,18 @@ const validSocioFields = ['docId', 'docSepa', 'docFamilyBook', 'docPhoto'];
 
 router.post('/socio/:field', upload.single('document'), async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+        if (!req.file) return res.status(400).json({ message: 'No se ha recibido ningún archivo.' });
         
         const field = req.params.field;
         if (!validSocioFields.includes(field)) {
-            return res.status(400).json({ message: 'Invalid field name.' });
+            return res.status(400).json({ message: 'Campo de documento no válido.' });
         }
 
         const user = await prisma.user.findUnique({
             where: { id: req.user.id },
             select: { socioId: true }
         });
-        if (!user?.socioId) return res.status(403).json({ message: 'No socio linked.' });
+        if (!user?.socioId) return res.status(403).json({ message: 'Sin ficha de socio vinculada.' });
 
         const filePath = `/uploads/documents/${req.file.filename}`;
 
@@ -109,23 +109,22 @@ const validPatientFields = ['docMedical', 'docDisability', 'docSchool', 'docId']
 
 router.post('/patient/:patientId/:field', upload.single('document'), async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+        if (!req.file) return res.status(400).json({ message: 'No se ha recibido ningún archivo.' });
 
         const { patientId, field } = req.params;
         if (!validPatientFields.includes(field)) {
-            return res.status(400).json({ message: 'Invalid field name.' });
+            return res.status(400).json({ message: 'Campo de documento no válido.' });
         }
 
-        // Security: verify this patient belongs to the logged-in socio
         const user = await prisma.user.findUnique({
             where: { id: req.user.id },
             select: { socioId: true }
         });
         const patient = await prisma.patient.findUnique({ where: { id: patientId } });
 
-        if (!patient) return res.status(404).json({ message: 'Patient not found.' });
+        if (!patient) return res.status(404).json({ message: 'Paciente no encontrado.' });
         if (req.user.role !== 'ADMIN' && patient.socioId !== user.socioId) {
-            return res.status(403).json({ message: 'Not authorized.' });
+            return res.status(403).json({ message: 'No tienes permiso para subir documentos a este paciente.' });
         }
 
         const filePath = `/uploads/documents/${req.file.filename}`;

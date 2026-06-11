@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Lock, Shield, Phone } from 'lucide-react';
-import Button from '../Button';
-import Input from '../Input';
+import { X, User, Lock, Shield, Phone } from 'lucide-react';
 import axios from 'axios';
 import useAuthStore from '../../store/authStore';
 import Swal from 'sweetalert2';
@@ -205,7 +203,7 @@ const UserModal = ({ isOpen, onClose, userToEdit, onSave }) => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         autoComplete="off"
-                                        placeholder="email@fundacion.org"
+                                        placeholder="correo@assotea.cat"
                                         className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
                                     />
                                 </div>

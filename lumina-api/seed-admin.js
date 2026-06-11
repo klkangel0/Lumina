@@ -21,7 +21,7 @@ async function seedAdminUser(prismaClient = prisma) {
         create: {
             username,
             name: 'Administrador del Sistema',
-            email: 'admin@lumina.local',
+            email: 'admin@assotea.cat',
             password: hashedPassword,
             role: 'ADMIN',
             appRoleId: adminRole ? adminRole.id : null,

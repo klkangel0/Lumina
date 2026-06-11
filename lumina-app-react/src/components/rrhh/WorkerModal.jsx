@@ -172,7 +172,7 @@ const WorkerModal = ({ isOpen, onClose, fetchData, worker = null }) => {
                         'Content-Type': 'multipart/form-data'
                     }
                 });
-                Swal.fire({ icon: 'success', title: 'Actualizado', text: 'Ficha del empleado actualizada correctacmente.' });
+                Swal.fire({ icon: 'success', title: 'Actualizado', text: 'Ficha del empleado actualizada correctamente.' });
             } else {
                 await axios.post(`${API_URL}/workers`, formData, {
                     headers: { 
@@ -466,7 +466,7 @@ const WorkerModal = ({ isOpen, onClose, fetchData, worker = null }) => {
                                 </div>
                             </div>
                             
-                            {worker && <p className="text-xs text-slate-400 text-center italic mt-2">Nota: Al editar, subir un documento nuevo reemplazará al actual en el sistema.</p>}
+                            {worker && <p className="text-xs text-slate-400 text-center italic mt-2">Al editar, subir un documento nuevo reemplazará el archivo guardado actualmente.</p>}
                         </div>
 
                     </div>

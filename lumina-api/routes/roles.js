@@ -9,9 +9,6 @@ const { ensureNotificacionesModule } = require('../lib/ensureNotificacionesModul
 // Protect all routes
 router.use(verifyToken);
 
-// ──────────────────────────────────────────
-// 1. GET ALL ROLES (with user count & module count)
-// ──────────────────────────────────────────
 router.get('/', async (req, res) => {
     try {
         const roles = await prisma.appRole.findMany({
@@ -51,9 +48,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// ──────────────────────────────────────────
-// 2. GET ALL ACTIVE MODULES
-// ──────────────────────────────────────────
 router.get('/modulos', async (req, res) => {
     try {
         await ensureNotificacionesModule(prisma);
@@ -68,9 +62,6 @@ router.get('/modulos', async (req, res) => {
     }
 });
 
-// ──────────────────────────────────────────
-// 3. GET PERMISSIONS FOR A ROLE
-// ──────────────────────────────────────────
 router.get('/:id/permisos', async (req, res) => {
     try {
         const roleId = parseInt(req.params.id);
@@ -85,9 +76,6 @@ router.get('/:id/permisos', async (req, res) => {
     }
 });
 
-// ──────────────────────────────────────────
-// 4. CREATE A NEW ROLE + PERMISSIONS
-// ──────────────────────────────────────────
 router.post('/', async (req, res) => {
     try {
         const { name, displayName, description, color, active, permissions } = req.body;
@@ -141,9 +129,6 @@ router.post('/', async (req, res) => {
     }
 });
 
-// ──────────────────────────────────────────
-// 5. UPDATE ROLE + PERMISSIONS
-// ──────────────────────────────────────────
 router.put('/:id', async (req, res) => {
     try {
         const roleId = parseInt(req.params.id);
@@ -201,9 +186,6 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// ──────────────────────────────────────────
-// 6. DELETE ROLE (non-system only)
-// ──────────────────────────────────────────
 router.delete('/:id', async (req, res) => {
     try {
         const roleId = parseInt(req.params.id);

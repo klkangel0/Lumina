@@ -106,7 +106,7 @@ const Login = () => {
                                 to="/recuperar-contrasena"
                                 className="text-sm text-blue-600 font-medium hover:underline"
                             >
-                                ¿Ha olvidado su contraseña?
+                                ¿Has olvidado tu contraseña?
                             </Link>
                         </div>
 

@@ -214,7 +214,7 @@ export default function CreateProfesionalModal({ isOpen, onClose, professional, 
                                 <input
                                     type="email"
                                     name="email"
-                                    placeholder="Ej: correo@ejemplo.com"
+                                    placeholder="Ej: correo@assotea.cat"
                                     value={formData.email}
                                     onChange={handleInputChange}
                                     className="w-full px-4 py-2.5 bg-white border border-slate-200 text-sm rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-slate-700 shadow-sm"

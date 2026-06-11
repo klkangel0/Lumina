@@ -349,7 +349,7 @@ export default function RecibosSepa() {
                         Recibos SEPA
                     </h1>
                     <p className="text-slate-500 mt-2 text-sm">
-                        Gestión manual de cuotas y recibos. La exportación XML (pain.008) se hará en una fase posterior.
+                        Gestión de cuotas y recibos SEPA. Genera y exporta remesas en formato XML (pain.008).
                     </p>
                 </div>
                 <button
